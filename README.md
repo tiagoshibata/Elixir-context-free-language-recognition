@@ -1,21 +1,5 @@
-# ContextFreeLanguageRecognition
+# Context-free language recognition
 
-**TODO: Add description**
+Recognize context-free languages given a grammar in Chomsky normal form.
 
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `context_free_language_recognition` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:context_free_language_recognition, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/context_free_language_recognition](https://hexdocs.pm/context_free_language_recognition).
-
+[Report](doc/latex/report.pdf)
