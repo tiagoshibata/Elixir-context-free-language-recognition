@@ -4,33 +4,29 @@ defmodule ContextFreeLanguageRecognitionTest do
   doctest ContextFreeLanguageRecognition
 
   @math_expression [
-    {:EXPR, [:TERM]},
-    {:EXPR, [:EXPR, :ADD, :TERM]},
-    {:EXPR, [:ADD, :TERM]},
-    {:TERM, [:FACTOR]},
-    {:TERM, [:TERM, :MUL, :FACTOR]},
-    {:FACTOR, [:PRIMARY]},
-    {:FACTOR, [:FACTOR, :"^", :PRIMARY]},
-    {:PRIMARY, [:number]},
-    {:PRIMARY, [:variable]},
-    {:PRIMARY, [:"(", :EXPR, :")"]},
-    {:ADD, [:"+"]},
-    {:ADD, [:"-"]},
-    {:MUL, [:"*"]},
-    {:MUL, [:"/"]},
+    {"EXPR", ["TERM"]},
+    {"EXPR", ["EXPR", "ADD", "TERM"]},
+    {"EXPR", ["ADD", "TERM"]},
+    {"TERM", ["FACTOR"]},
+    {"TERM", ["TERM", "MUL", "FACTOR"]},
+    {"FACTOR", ["PRIMARY"]},
+    {"FACTOR", ["FACTOR", "^", "PRIMARY"]},
+    {"PRIMARY", ["number"]},
+    {"PRIMARY", ["variable"]},
+    {"PRIMARY", ["(", "EXPR", ")"]},
+    {"ADD", ["+"]},
+    {"ADD", ["-"]},
+    {"MUL", ["*"]},
+    {"MUL", ["/"]},
   ]
 
-  test "joins atoms to string" do
-    assert atoms_to_string([:e, :l, :i, :x, :i, :r]) == "elixir"
-  end
-
   test "checks for terminals" do
-    assert is_terminal(:"+")
-    assert is_terminal(:a)
-    assert is_terminal(:"0")
-    assert not is_terminal(:"A")
-    assert not is_terminal(:"VB")
-    assert not is_terminal(:"N_A")
+    assert is_terminal("+")
+    assert is_terminal("a")
+    assert is_terminal("0")
+    assert not is_terminal("A")
+    assert not is_terminal("VB")
+    assert not is_terminal("N_A")
   end
 
   test "eliminates start symbols" do
@@ -45,5 +41,9 @@ defmodule ContextFreeLanguageRecognitionTest do
     # Should work with MapSet
     rules = MapSet.new [{:S, [:A]}, {:A, [:S, :A]}, {:A, [:a]}]
     assert eliminate_start({rules, :S}) == {MapSet.put(rules, {:S0, :S}), :S0}
+  end
+
+  test "aliases terminals as nonterminals" do
+    assert terminal_alias_nonterminal("+") == {"N_+", "+"}
   end
 end
