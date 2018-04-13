@@ -20,6 +20,10 @@ defmodule ContextFreeLanguageRecognitionTest do
     {"MUL", ["/"]},
   ]
 
+  def assert_same_content(a, b) do
+    assert MapSet.new(a) == MapSet.new(b)
+  end
+
   test "checks for terminals" do
     assert is_terminal("+")
     assert is_terminal("a")
@@ -27,6 +31,7 @@ defmodule ContextFreeLanguageRecognitionTest do
     assert not is_terminal("A")
     assert not is_terminal("VB")
     assert not is_terminal("N_A")
+    assert not is_terminal("N_+")
   end
 
   test "eliminates start symbols" do
@@ -44,6 +49,29 @@ defmodule ContextFreeLanguageRecognitionTest do
   end
 
   test "aliases terminals as nonterminals" do
-    assert terminal_alias_nonterminal("+") == {"N_+", "+"}
+    assert terminal_alias_nonterminal_rule("+") == {"N_+", ["+"]}
+  end
+
+  test "replaces solitary terminals" do
+    assert replace_solitary_terminals(["X", "+", "a"]) == ["X", "N_+", "N_A"]
+  end
+
+  test "rewrites rules with nonsolitary terminals" do
+    assert_same_content(eliminate_nonsolitary_terminal({[
+      {"A", ["B"]},
+      {"A", ["a"]},
+      {"B", ["b"]},
+      {"B", ["B", "b"]},
+      {"B", ["b", "+", "b"]},
+    ], nil}),
+    [
+      {"A", ["B"]},
+      {"A", ["a"]},
+      {"B", ["b"]},
+      {"N_B", ["b"]},
+      {"B", ["B", "N_B"]},
+      {"N_+", ["+"]},
+      {"B", ["N_B", "N_+", "N_B"]},
+    ])
   end
 end
