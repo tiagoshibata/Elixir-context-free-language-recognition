@@ -34,6 +34,15 @@ tiago.shibata@usp.br}
 
 \section{Tarefa}
 
+In formal language theory, a context-free grammar G is said to be in Chomsky normal form (first described by Noam Chomsky)[1] if all of its production rules are of the form:
+
+A → BC,   or
+A → a,   or
+S → ε,
+where A, B, and C are nonterminal symbols, a is a terminal symbol (a symbol that represents a constant value), S is the start symbol, and ε denotes the empty string. Also, neither B nor C may be the start symbol, and the third production rule can only appear if ε is in L(G), namely, the language produced by the context-free grammar G.
+
+Every grammar in Chomsky normal form is context-free, and conversely, every context-free grammar can be transformed into an equivalent one which is in Chomsky normal form and has a size no larger than the square of the original grammar's size.
+
 % A tarefa consiste em implementar um algoritmo de simulação de autômato determinístico e não determinístico em Elixir, experimentando com conceitos vistos em aula.
 
 % Um autômato finito é definido pela tupla:
@@ -104,9 +113,9 @@ tiago.shibata@usp.br}
 
 \begin{thebibliography}{1}
 \bibitem{elixir}
-Friedel Ziegelmayer. \emph{Elixir ExDoc}. \url{https://hexdocs.pm/elixir/}, acessado em 11/02/2018
-\bibitem{universal-automata}
-Wagenknecht, C., Friedman, P.D. \emph{Teaching Nondeterministic and Universal Automata Using SCHEME}. Computer Science Education, vol. 8, Issue 3, 1998, p.197-227
+Friedel Ziegelmayer. \emph{Elixir ExDoc}. \url{https://hexdocs.pm/elixir/}, acessado em 12/04/2018
+\bibitem{cky}
+Scott Farrar. \emph{CKY Algorithm}. CLMA, University of Washington. \url{http://courses.washington.edu/ling571/ling571_fall_2010/slides/cky_cnf.pdf}, acessado em 12/04/2018
 \end{thebibliography}
 
 \end{document}
