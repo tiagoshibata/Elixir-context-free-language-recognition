@@ -30,7 +30,7 @@ defmodule ContextFreeLanguageRecognition do
     ))
   end
 
-  def eliminate_nonsolitary_terminal({rules, _}) do
+  def eliminate_nonsolitary_terminal(rules) do
     Enum.reduce(rules, MapSet.new, fn({rule_left, rule_right}, acc) ->
       right_terminals = Enum.filter(rule_right, &is_terminal(&1))
       if right_terminals == [] or length(rule_right) <= 1 do
@@ -39,6 +39,30 @@ defmodule ContextFreeLanguageRecognition do
         Enum.reduce(right_terminals, acc, &MapSet.put(&2, terminal_alias_nonterminal_rule &1))
         |> MapSet.put({rule_left, replace_solitary_terminals rule_right})
       end
+    end)
+  end
+
+  def subsymbol(symbol, depth) do
+    if depth == 0 do
+      symbol
+    else
+      '#{symbol}_#{depth}'
+    end
+  end
+
+  def eliminate_right_side_with_multiple_nonterminals({rule_left, rule_right}, depth) do
+    if length(rule_right) > 2 do
+      [head | tail] = rule_right
+      new_rule = {subsymbol(rule_left, depth), [head, subsymbol(rule_left, depth + 1)]}
+      MapSet.put eliminate_right_side_with_multiple_nonterminals({rule_left, tail}, depth + 1), new_rule
+    else
+      MapSet.new [{subsymbol(rule_left, depth), rule_right}]
+    end
+  end
+
+  def eliminate_right_side_with_multiple_nonterminals(rules) do
+    Enum.reduce(rules, MapSet.new, fn(rule, acc) ->
+      MapSet.union(acc, eliminate_right_side_with_multiple_nonterminals(rule, 0))
     end)
   end
 end
