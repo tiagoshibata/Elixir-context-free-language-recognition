@@ -103,4 +103,28 @@ defmodule ContextFreeLanguageRecognitionTest do
       {"C", ["c"]},
     ]
   end
+
+  test "rewrites empty symbols" do
+    assert rewrite_empty_symbol({"B", ["A", "A"]}, "A") == MapSet.new [
+      {"B", ["A", "A"]},
+      {"B", ["A"]},
+    ]
+    assert rewrite_empty_symbol({"S", ["A", "b", "B"]}, "A") == MapSet.new [
+      {"S", ["A", "b", "B"]},
+      {"S", ["b", "B"]},
+    ]
+    assert rewrite_empty_symbol({"S", ["A", "b", "A", "B", "A", "A"]}, "A") == MapSet.new [
+      {"S", ["A", "b", "A", "B", "A", "A"]},
+      {"S", ["b", "A", "B", "A", "A"]},
+      {"S", ["A", "b", "B", "A", "A"]},
+      {"S", ["A", "b", "A", "B", "A"]},
+      {"S", ["b", "B", "A", "A"]},
+      {"S", ["b", "A", "B", "A"]},
+      {"S", ["A", "b", "B",  "A"]},
+      {"S", ["A", "b", "A", "B"]},
+      {"S", ["b", "B", "A"]},
+      {"S", ["b", "A", "B"]},
+      {"S", ["A", "b", "B"]},
+      {"S", ["b", "B"]},
+    ]
 end

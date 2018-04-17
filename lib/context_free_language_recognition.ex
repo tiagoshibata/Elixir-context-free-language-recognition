@@ -65,4 +65,21 @@ defmodule ContextFreeLanguageRecognition do
       MapSet.union(acc, eliminate_right_side_with_multiple_nonterminals(rule, 0))
     end)
   end
+
+  def rewrite_empty_symbol({rule_left, rule_right}, empty_symbol) do
+
+  end
+
+  def eliminate_empty_rules(rules) do
+    rule_left = Enum.find_value(rules, fn({rule_left, rule_right}) ->
+      if rule_right == [] do
+        rule_left
+      end
+    end)
+    if not rule_left do
+      rules
+    else
+
+    end
+  end
 end
