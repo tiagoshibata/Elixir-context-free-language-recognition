@@ -46,7 +46,7 @@ defmodule ContextFreeLanguageRecognition do
     if depth == 0 do
       symbol
     else
-      '#{symbol}_#{depth}'
+      "#{symbol}_#{depth}"
     end
   end
 
