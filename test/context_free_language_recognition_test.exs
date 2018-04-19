@@ -3,23 +3,6 @@ defmodule ContextFreeLanguageRecognitionTest do
   import ContextFreeLanguageRecognition
   doctest ContextFreeLanguageRecognition
 
-  @math_expression [
-    {"EXPR", ["TERM"]},
-    {"EXPR", ["EXPR", "ADD", "TERM"]},
-    {"EXPR", ["ADD", "TERM"]},
-    {"TERM", ["FACTOR"]},
-    {"TERM", ["TERM", "MUL", "FACTOR"]},
-    {"FACTOR", ["PRIMARY"]},
-    {"FACTOR", ["FACTOR", "^", "PRIMARY"]},
-    {"PRIMARY", ["number"]},
-    {"PRIMARY", ["variable"]},
-    {"PRIMARY", ["(", "EXPR", ")"]},
-    {"ADD", ["+"]},
-    {"ADD", ["-"]},
-    {"MUL", ["*"]},
-    {"MUL", ["/"]},
-  ]
-
   test "checks for terminals" do
     assert is_terminal("+")
     assert is_terminal("a")
@@ -30,18 +13,18 @@ defmodule ContextFreeLanguageRecognitionTest do
     assert not is_terminal("N_+")
   end
 
-  test "eliminates start symbols" do
-    grammar = {[], :S}
-    assert eliminate_start(grammar) == grammar
+  test "eliminates start symbols at the right side of rules" do
+    grammar = {[], "S"}
+    assert eliminate_right_start(grammar) == grammar
 
-    rules = [{:S, [:A]}, {:A, [:a]}, {:A, [:B, :C]}, {:B, [:b]}, {:C, [:c]}]
-    grammar = {rules, :S}
+    rules = [{"S", ["A"]}, {"A", ["a"]}, {"A", ["B", "C"]}, {"B", ["b"]}, {"C", ["c"]}]
+    grammar = {rules, "S"}
     # Should be unchanged if no start symbols in the right side
-    assert eliminate_start(grammar) == grammar
+    assert eliminate_right_start(grammar) == grammar
 
     # Should work with MapSet
-    rules = MapSet.new [{:S, [:A]}, {:A, [:S, :A]}, {:A, [:a]}]
-    assert eliminate_start({rules, :S}) == {MapSet.put(rules, {:S0, :S}), :S0}
+    rules = MapSet.new [{"S", ["A"]}, {"A", ["S", "A"]}, {"A", ["a"]}]
+    assert eliminate_right_start({rules, "S"}) == {MapSet.put(rules, {"S0", ["S"]}), "S0"}
   end
 
   test "aliases terminals as nonterminals" do
@@ -185,6 +168,49 @@ defmodule ContextFreeLanguageRecognitionTest do
       {"S", ["A", "a"]},
       {"S", ["a"]},
       {"A", ["a"]},
+    ]
+  end
+
+  test "generates the Chomsky normal form" do
+    math_rules = MapSet.new [
+      {"EXPR", ["TERM"]},
+      {"EXPR", ["EXPR", "ADD", "TERM"]},
+      {"EXPR", ["ADD", "TERM"]},
+      {"TERM", ["FACTOR"]},
+      {"TERM", ["TERM", "MUL", "FACTOR"]},
+      {"FACTOR", ["PRIMARY"]},
+      {"FACTOR", ["FACTOR", "^", "PRIMARY"]},
+      {"PRIMARY", ["number"]},
+      {"PRIMARY", ["variable"]},
+      {"PRIMARY", ["(", "EXPR", ")"]},
+      {"ADD", ["+"]},
+      {"ADD", ["-"]},
+      {"MUL", ["*"]},
+      {"MUL", ["/"]},
+    ]
+    {new_rules, new_start} = eliminate_right_start({math_rules, "EXPR"})
+    assert {new_rules, new_start} == {MapSet.put(math_rules, {"S0", ["EXPR"]}), "S0"}
+
+    new_rules = eliminate_nonsolitary_terminal(new_rules)
+    assert new_rules == MapSet.new [
+      {"S0", ["EXPR"]},
+      {"EXPR", ["TERM"]},
+      {"EXPR", ["EXPR", "ADD", "TERM"]},
+      {"EXPR", ["ADD", "TERM"]},
+      {"TERM", ["FACTOR"]},
+      {"TERM", ["TERM", "MUL", "FACTOR"]},
+      {"FACTOR", ["FACTOR", "N_^", "PRIMARY"]},
+      {"FACTOR", ["PRIMARY"]},
+      {"PRIMARY", ["number"]},
+      {"PRIMARY", ["variable"]},
+      {"PRIMARY", ["N_(", "EXPR", "N_)"]},
+      {"N_(", ["("]},
+      {"N_)", [")"]},
+      {"N_^", ["^"]},
+      {"ADD", ["+"]},
+      {"ADD", ["-"]},
+      {"MUL", ["*"]},
+      {"MUL", ["/"]},
     ]
   end
 end

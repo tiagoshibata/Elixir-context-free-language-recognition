@@ -3,10 +3,10 @@ defmodule ContextFreeLanguageRecognition do
     String.downcase(s) == s
   end
 
-  def eliminate_start({rules, start}) do
+  def eliminate_right_start({rules, start}) do
     if Enum.map(rules, &(Enum.member?(elem(&1, 1), start)))
     |> Enum.any? do
-      {MapSet.put(rules, {:S0, start}), :S0}
+      {MapSet.put(rules, {"S0", [start]}), "S0"}
     else
       {rules, start}
     end
@@ -116,5 +116,14 @@ defmodule ContextFreeLanguageRecognition do
       |> MapSet.delete(unit_rule)
       |> eliminate_unit_rules
     end
+  end
+
+  def to_chomsky_nf({rules, start}) do
+    {rules, start} = eliminate_right_start({rules, start})
+    rules = eliminate_nonsolitary_terminal(rules)
+    |> eliminate_right_side_with_multiple_nonterminals
+    |> eliminate_empty_rules
+    |> eliminate_unit_rules
+    {rules, start}
   end
 end
