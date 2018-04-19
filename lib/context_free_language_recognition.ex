@@ -66,20 +66,42 @@ defmodule ContextFreeLanguageRecognition do
     end)
   end
 
-  def rewrite_empty_symbol({rule_left, rule_right}, empty_symbol) do
+  def split_first(list, divider) do
+    {left, right} = Enum.split_while(list, divider)
+    if right == [] do
+      {list, nil}
+    else
+      [_ | right] = right
+      {left, right}
+    end
+  end
 
+  def rewrite_empty_symbol(rule_right, empty_symbol) do
+    {left, right} = split_first(rule_right, &(&1 != empty_symbol))
+    if right == nil do
+      [rule_right]
+    else
+      Enum.flat_map(rewrite_empty_symbol(right, empty_symbol), &(
+        [left ++ &1, left ++ [empty_symbol | &1]]
+      ))
+    end |> MapSet.new
   end
 
   def eliminate_empty_rules(rules) do
-    rule_left = Enum.find_value(rules, fn({rule_left, rule_right}) ->
+    empty_symbol = Enum.find_value(rules, fn({rule_left, rule_right}) ->
       if rule_right == [] do
         rule_left
       end
     end)
-    if not rule_left do
-      rules
+    if is_nil(empty_symbol) do
+      MapSet.new rules
     else
-
+      MapSet.delete(rules, {empty_symbol, []})
+      |> Enum.flat_map(fn({rule_left, rule_right}) ->
+        Enum.map(rewrite_empty_symbol(rule_right, empty_symbol), &({rule_left, &1}))
+      end)
+      |> MapSet.new
+      |> eliminate_empty_rules
     end
   end
 end
