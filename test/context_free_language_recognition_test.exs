@@ -175,4 +175,16 @@ defmodule ContextFreeLanguageRecognitionTest do
       {"A", ["a"]},
     ]
   end
+
+  test "eliminates unit rules" do
+    assert eliminate_unit_rules(MapSet.new [
+      {"S", ["A", "a"]},
+      {"S", ["A"]},
+      {"A", ["a"]},
+    ]) == MapSet.new [
+      {"S", ["A", "a"]},
+      {"S", ["a"]},
+      {"A", ["a"]},
+    ]
+  end
 end
