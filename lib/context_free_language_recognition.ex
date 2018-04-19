@@ -88,17 +88,13 @@ defmodule ContextFreeLanguageRecognition do
   end
 
   def eliminate_empty_rules(rules) do
-    empty_symbol = Enum.find_value(rules, fn({rule_left, rule_right}) ->
-      if rule_right == [] do
-        rule_left
-      end
-    end)
-    if is_nil(empty_symbol) do
-      MapSet.new rules
+    empty_rule = Enum.find(rules, fn({rule_left, rule_right}) -> rule_right == [] end)
+    if is_nil(empty_rule) do
+      rules
     else
-      MapSet.delete(rules, {empty_symbol, []})
+      MapSet.delete(rules, empty_rule)
       |> Enum.flat_map(fn({rule_left, rule_right}) ->
-        Enum.map(rewrite_empty_symbol(rule_right, empty_symbol), &({rule_left, &1}))
+        Enum.map(rewrite_empty_symbol(rule_right, elem(empty_rule, 0)), &({rule_left, &1}))
       end)
       |> MapSet.new
       |> eliminate_empty_rules
