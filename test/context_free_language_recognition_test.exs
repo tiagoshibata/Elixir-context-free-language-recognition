@@ -212,5 +212,77 @@ defmodule ContextFreeLanguageRecognitionTest do
       {"MUL", ["*"]},
       {"MUL", ["/"]},
     ]
+
+    new_rules = eliminate_right_side_with_multiple_nonterminals(new_rules)
+    assert new_rules == MapSet.new [
+      {"S0", ["EXPR"]},
+      {"EXPR", ["TERM"]},
+      {"EXPR", ["EXPR", "EXPR_1"]},
+      {"EXPR_1", ["ADD", "TERM"]},
+      {"EXPR", ["ADD", "TERM"]},
+      {"TERM", ["FACTOR"]},
+      {"TERM", ["TERM", "TERM_1"]},
+      {"TERM_1", ["MUL", "FACTOR"]},
+      {"FACTOR", ["FACTOR", "FACTOR_1"]},
+      {"FACTOR_1", ["N_^", "PRIMARY"]},
+      {"FACTOR", ["PRIMARY"]},
+      {"PRIMARY", ["number"]},
+      {"PRIMARY", ["variable"]},
+      {"PRIMARY", ["N_(", "PRIMARY_1"]},
+      {"PRIMARY_1", ["EXPR", "N_)"]},
+      {"N_(", ["("]},
+      {"N_)", [")"]},
+      {"N_^", ["^"]},
+      {"ADD", ["+"]},
+      {"ADD", ["-"]},
+      {"MUL", ["*"]},
+      {"MUL", ["/"]},
+    ]
+
+    assert eliminate_empty_rules(new_rules) == new_rules
+
+    new_rules = eliminate_unit_rules(new_rules)
+    assert new_rules == MapSet.new [
+      {"S0", ["EXPR", "EXPR_1"]},
+      {"S0", ["ADD", "TERM"]},
+      {"S0", ["N_(", "PRIMARY_1"]},
+
+      {"EXPR", ["variable"]},
+      {"EXPR", ["FACTOR", "FACTOR_1"]},
+      {"EXPR", ["N_(", "PRIMARY_1"]},
+      {"EXPR", ["number"]},
+
+      {"EXPR", ["EXPR", "EXPR_1"]},
+      {"EXPR_1", ["ADD", "TERM"]},
+      {"EXPR", ["ADD", "TERM"]},
+
+      {"PRIMARY_1", ["EXPR", "N_)"]},
+      {"ADD", ["+"]},
+      {"FACTOR", ["variable"]},
+      {"FACTOR", ["N_(", "PRIMARY_1"]},
+      {"PRIMARY", ["number"]},
+      {"PRIMARY", ["N_(", "PRIMARY_1"]},
+      {"TERM", ["TERM", "TERM_1"]},
+      {"TERM", ["FACTOR", "FACTOR_1"]},
+      {"S0", ["number"]},
+      {"FACTOR", ["FACTOR", "FACTOR_1"]},
+      {"PRIMARY", ["variable"]},
+      {"N_)", [")"]},
+      {"ADD", ["-"]},
+      {"N_(", ["("]},
+      {"MUL", ["/"]},
+      {"S0", ["FACTOR", "FACTOR_1"]},
+      {"S0", ["TERM", "TERM_1"]},
+      {"FACTOR", ["number"]},
+      {"TERM", ["N_(", "PRIMARY_1"]},
+      {"TERM_1", ["MUL", "FACTOR"]},
+      {"TERM", ["variable"]},
+      {"FACTOR_1", ["N_^", "PRIMARY"]},
+      {"EXPR", ["TERM", "TERM_1"]},
+      {"S0", ["variable"]},
+      {"MUL", ["*"]},
+      {"N_^", ["^"]},
+      {"TERM", ["number"]},
+    ]
   end
 end
