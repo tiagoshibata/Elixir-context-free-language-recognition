@@ -3,9 +3,10 @@
 \usepackage{amsfonts}
 \usepackage{caption}
 \usepackage{graphicx}
+\usepackage{textcomp}
 \usepackage{listings}
 \lstset{
-    basicstyle=\tiny\ttfamily,
+    basicstyle=\scriptsize\ttfamily,
     keywordstyle=\color{blue}\ttfamily,
     stringstyle=\color{red}\ttfamily,
     commentstyle=\color{green}\ttfamily,
@@ -28,34 +29,31 @@ tiago.shibata@usp.br}
 \maketitle
 
 \section{Introdução}
-% Esse relatório acompanha o terceiro exercício programa (EP3) da disciplina PCS3556 - Lógica Computacional. Nesse exercício programa, é implementado um simulador de autômato finito determinístico e não determinístico em Elixir.
+Esse relatório acompanha o quarto exercício programa (EP4) da disciplina PCS3556 - Lógica Computacional. Nesse exercício programa, é implementado o algoritmo de conversão de gramática livre de contexto em forma normal de Chomsky. Em seguida, é implementado um algoritmo de reconhecimento de sentenças utilizando programação dinâmica, a partir da forma normal de Chomsky.
 
-\hfill 12 de Abril de 2018
+\hfill 21 de Abril de 2018
 
 \section{Tarefa}
 
-In formal language theory, a context-free grammar G is said to be in Chomsky normal form (first described by Noam Chomsky)[1] if all of its production rules are of the form:
+Como estudado na disciplina, algumas gramáticas são livres de contexto. A manipulação delas é mais simples: escrever reconhecedores de dadas gramáticas é muito mais fácil e existem algoritmos rápidos de reconhecimento.
 
-A → BC,   or
-A → a,   or
-S → ε,
-where A, B, and C are nonterminal symbols, a is a terminal symbol (a symbol that represents a constant value), S is the start symbol, and ε denotes the empty string. Also, neither B nor C may be the start symbol, and the third production rule can only appear if ε is in L(G), namely, the language produced by the context-free grammar G.
+Para facilitar o reconhecimento, pode ser usada uma forma normal, como a forma normal de Chomsky. Uma característica importante da forma normal de Chomsky é que toda gramática em forma normal de Chomsky é livre de contexto, e toda gramática livre de contexto pode ser convertida a uma gramática equivalente em forma normal de Chomsky (no entanto, no processo de conversão regras são adicionadas, e a gramática normalizada pode possuir tamanho até o quadrado do número de regras da gramática original, no pior caso. A facilidade de reconhecimento na forma normal pode implicar em maior dificuldade de leitura e compreensão da gramática por um humano).
 
-Every grammar in Chomsky normal form is context-free, and conversely, every context-free grammar can be transformed into an equivalent one which is in Chomsky normal form and has a size no larger than the square of the original grammar's size.
+Uma gramática livre de contexto $G$ é dita em forma normal de Chomsky se todas as suas regras de produção são da forma:
 
-% A tarefa consiste em implementar um algoritmo de simulação de autômato determinístico e não determinístico em Elixir, experimentando com conceitos vistos em aula.
+\
 
-% Um autômato finito é definido pela tupla:
+$A \to BC$, ou
 
-% \begin{equation}
-% M = (Q, \Sigma, \delta, q_0, F)
-% \end{equation}
+$A \to a$, ou
 
-% Onde $Q$ é a lista de estados do autômato, $\Sigma$ o alfabeto de entrada, $\delta$ a função de transição, $q_0$ o estado inicial, e $F$ o conjunto de estados de aceitação. Dado um autômato, estado inicial e cadeia, o algoritmo deve retornar se é possível que o autômato aceite a cadeia (ou seja, há uma sequência de transições iniciando no estado inicial e acabando em estado de aceitação que gere a cadeia desejada).
+$S \to \varepsilon$
 
-% Como vimos em aula, o estudo de autômatos é bastante importante. Linguagens reconhecidas por autômatos são regulares, e toda linguagem regular pode ser representada por um autômato. Autômatos determinísticos (DFA) e não determinísticos (NFA) são equivalentes (é possível converter qualquer NFA em DFA equivalente, que aceita e rejeita as mesmas cadeias; no entanto, para um NFA de $n$ estados, o DFA equivalente pode ter até $2^n$ estados, portanto a representação em NFA pode ser mais conveniente. No entanto, a simulação de DFA é muito mais fácil, já que não há várias transições possíveis a se testar).
+\
 
-% Na hierarquia de Chomsky, autômatos finitos estão na classe de linguagens regulares:
+Onde $A$, $B$, e $C$ são símbolos não terminais, $a$ é um símbolo terminal, $S$ é o símbolo não terminal inicial, e $\varepsilon$ é a cadeia vazia. $B$ e $C$ também não podem ser o símbolo inicial (representado aqui por $S$) e a regra de produção $S \to \varepsilon$ está disponível apenas se $\varepsilon \in L(G)$, ou seja, a cadeia vazia pertence à linguagem gerada por $G$.
+
+No Exercício Programa 2, trabalhamos com um reconhecedor de linguagens sensíveis ao contexto. Nesse Exercício Programa, apenas linguagens livres de contexto serão cobertas; observando a hierarquia de Chomsky, apenas linguagens regulares e livres de contexto são suportadas:
 
 \begin{minipage}{\linewidth}
     \centering
@@ -65,51 +63,200 @@ Every grammar in Chomsky normal form is context-free, and conversely, every cont
 \end{minipage}
 \\
 
+Após a conversão para forma normal de Chomsky, implementou-se um algoritmo de reconhecimento com programação dinâmica, muito mais rápido que testar todas as expansões possíveis a partir do não terminal inicial. O algoritmo CYK ou CKY (\emph{Cocke-Kasami-Younger}) \cite{cky} foi escolhido.
+
 \section{Estruturas de dados}
 
-% Em alguns locais, estruturas de conjunto fornecidas pelo Elixir (\emph{MapSet} foram usadas. O uso de conjunto evita que varramos a lista toda para buscar um elemento, e o conjunto permite operações fáceis e rápidas de união ou diferença quando necessário. Funções do módulo \emph{Enum} foram usadas para facilitar a programação funcional.
+Em alguns locais, estruturas de conjunto fornecidas pelo Elixir (\emph{MapSet}) foram usadas. O uso de conjunto evita que varramos a lista toda para buscar um elemento, e o conjunto permite operações fáceis e rápidas de união ou diferença quando necessário. Funções do módulo \emph{Enum} foram usadas para facilitar a programação funcional.
 
-% Nessa implementação, $\delta$ é dado como uma lista de transições (lista de tuplas do tipo $\{estado, caractere, pr\acute{o}ximo\_estado\}$, significando que $\delta(estado, caractere) = pr\acute{o}ximo\_estado$). Os estados de aceitação são dados como uma lista de estados e a cadeia desejada é dada como uma lista de elementos.
+Nessa implementação, a gramática $G$ é dada como uma tupla \emph{\{regras de produção, símbolo inicial\}}. As regras de produção são dadas como uma lista de tuplas do tipo \emph{\{símbolo inicial, [substituição]\}}. Após conversão para forma normal de Chomsky, todas as regras serão da forma \emph{\{símbolo inicial, [terminal]\}} ou \emph{\{símbolo inicial, [não terminal, não terminal]\}}. Além disso, terminais serão sempre representados por nomes maiúsculos (como \emph{A, NP, ADD}) e não terminais por símbolos ou nomes minúsculos (como \emph{a, he, +}).
 
-\section{Algoritmo}
+\section{Algoritmo - Conversão para forma normal de Chomsky}
 
-% O algoritmo deve suportar autômatos não determinísticos, incluíndo transições vazias. O uso de transições vazias adiciona uma dificuldade à tarefa: ao seguir uma sequência de transições, o algoritmo deve acompanhar estados visitados para não ficar preso em um ciclo de transições em vazio.
+Foram implementadas toda a série de operações para transformação em forma normal de Chomsky, baseado no material da disciplina.
 
-% A função \emph{next\_state} calcula os possíveis próximos estados dado o estado atual, regras de transição e caractere atual. Para evitar ciclos infinitos em caso de transição vazia, os estados já vistos são mantidos em um conjunto; o estado não é visitado novamente se já pertencer ao conjunto. A função filtra regras que iniciam no estado inicial e transitam pelo caractere na entrada. Ela também se chama recursivamente por transições vazias, e concatena os resultados. Finalmente, é usado um \emph{pipe} para um \emph{MapSet}, removendo quaisquer estados repetidos:
+Primeiramente, o símbolo inicial foi removido do lado direito de regras de produção, se presente, com adição de um não terminal novo (\emph{S0}), e o código foi testado:
 
-% \lstinputlisting{1.ex}
+\lstinputlisting{1.ex}
 
-% Os testes foram essenciais no desenvolvimento, já que essa função apresenta alguns \emph{corner cases}, como ciclos de transições vazias. A função foi testada com um autômato com ciclo de transições vazias e funcionou corretamente:
+\
 
-% \lstinputlisting{1_test.ex}
+\lstinputlisting{1_test.ex}
 
-% A função \emph{final\_states} computa os possíveis estados finais de um autômato não determinístico. Ele recebe o estado inicial, sentença de entrada e regras de transição, e retorna estados finais possíveis consumindo um caractere por vez e chamando-se recursivamente:
+Depois, terminais presentes no lado direito de regras de produção e não solitários foram substituídos. Cada regra do tipo:
 
-% \lstinputlisting{2.ex}
+\
 
-% A função foi testada:
+$A \to X_1 ... a ... X_n$
 
-% \lstinputlisting{2_test.ex}
+\
 
-% A função \emph{accepts\_sentence?} verifica se uma sentença pode ser aceita por um NFA. Para isso, a função recebe uma lista de estados de aceitação, e busca por intersecção com os estados retornados por \emph{final\_states}:
+Foi trocada por um par de regras equivalentes:
 
-% \lstinputlisting{3.ex}
+\
 
-% Finalmente, foram feitos testes de \emph{accepts\_sentence?}:
+$N_a \to a$
 
-% \lstinputlisting{3_test.ex}
+$A \to X_1 ... N_a ... X_n$
 
-% Mais testes foram feitos com autômatos vistos em aula, e com sucesso:
+\
 
-% \lstinputlisting{3_test_2.ex}
+Foi implementada a função \emph{eliminate\_nonsolitary\_terminal}, funções auxiliares e testes:
+
+\lstinputlisting{2.ex}
+
+\
+
+\lstinputlisting{2_test.ex}
+
+Depois, regras de produção foram modificadas para possuir no máximo dois não terminais do lado direito. Cada regra do tipo
+
+\
+
+$A \to X_1 X_2 X_3 ... X_n$
+
+\
+
+Foi trocada por regras do tipo:
+
+\
+
+$A \to X_1 A_1,$
+
+$A_1 \to X_2 A_2,$
+
+$... ,$
+
+$A_{n-2} \to X_{n-1} X_n,$
+
+\
+
+Foi implementada a função \emph{eliminate\_right\_side\_with\_multiple\_nonterminals}, funções auxiliares e testes:
+
+\lstinputlisting{3.ex}
+
+\
+
+\lstinputlisting{3_test.ex}
+
+Regras vazias foram reescritas, propagando o não terminal possivelmente vazio para todas as regras que o possuem no lado direito, e apagando a regra vazia:
+
+Foi implementada a função \emph{eliminate\_empty\_rules}, funções auxiliares e testes:
+
+\lstinputlisting{4.ex}
+
+\
+
+\lstinputlisting{4_test.ex}
+
+Foi implementada a remoção de regras de produção unitárias (do tipo $A \to B$, onde $A$ e $B$ são não terminais). Regras do tipo:
+
+\
+
+$A \to B$
+
+\
+
+Com $A$ e $B$ não terminais, foram removidas, e para todas as regras do tipo
+
+\
+
+$B \to X_1 ... X_n$
+
+\
+
+Foi adicionada uma regra do tipo:
+
+\
+
+$A \to X_1 ... X_n$
+
+\
+
+Representando a regra removida de A para B. Iniciou-se com uma implementação simples, que buscava regras unitárias e realizava as substituições:
+
+\lstinputlisting{5_test.ex}
+
+Mas percebeu-se que a implementação falhava em regras unitárias encadeadas (como $A \to B \to C$), dependendo da sequência de aplicação. Foi refeita a implementação, dessa vez buscando se a as novas regras adicionadas possuiam ainda novas regras de produção unitárias, e testes foram escritos:
+
+\lstinputlisting{5.ex}
+
+\
+
+\lstinputlisting{5_test.ex}
+
+Por fim, foi implementada a função \emph{to\_chomsky\_nf}, que chama cada uma das funções anteriores, e mais testes foram escritos:
+
+\lstinputlisting{6.ex}
+
+\
+
+\lstinputlisting{6_test.ex}
+
+\section{Algoritmo - CKY}
+
+Depois, implementou-se CKY. O algoritmo opera de forma \emph{bottom-up}, iniciando por cada caractere da sentença sendo analizada e subindo até gerar a sentença completa. Resumidamente, o algoritmo:
+
+\begin{enumerate}
+    \item Varre a cadeia de entrada, e para cada caractere $c$ busca alguma regra $R \to c$ correspondente. Todos os não terminais que podem produzir $c$ são salvos em uma lista.
+    \item Agrupa pares de caracteres da sentença: Para cada par de não terminais adjacentes gerados no passo anterior, busca se alguma regra pode produzir o par, e salva em outra lista.
+    \item Agrupa trios de caracteres da sequência: Busca regras que gerem um não terminal gerado no passo 1 seguido de um não terminal gerado no passo 2 (ou seja, um não terminal que engloba 3 caracteres da sentença sendo analizada) ou um não terminal gerado no passo 2 seguido de um não terminal gerado no passo 1.
+    \item Agrupa quartetos de caracteres da sequência: Busca regras que gerem um não terminal gerado no passo 1 seguido de um não terminal gerado no passo 3 ou dois não terminais gerados no passo 2.
+\end{enumerate}
+
+Observa-se que para agrupar $n$ caracteres a partir de estados já processados, são feitos $n - 1$ testes em janelas da sequência (ou seja, para agrupar 4 caracteres da sequência de entrada, são testados os agrupamentos de 1 e 3 caracteres, 2 e 2, e 3 e 1).
+
+Mais detalhes sobre o funcionamento do algoritmo podem ser vistos na referência indicada \cite{cky}. O comportamento \emph{bottom-up} do algoritmo pode ser visto na seguinte imagem, onde o processamento inicia caractere por caractere, agrupando-os até chegar ao símbolo inicial:
+
+\begin{minipage}{\linewidth}
+    \centering
+    \label{chomsky}
+    \includegraphics[width=0.8\textwidth]{cky_tree.png}
+    \captionof{figure}{Comportamento \emph{bottom-up} do CKY}
+\end{minipage}
+
+\
+
+O algoritmo comumente utiliza uma tabela de aplicação de símbolos, subindo na tabela conforme aumenta-se o número de caracteres englobados da cadeia sendo analisada:
+
+\begin{minipage}{\linewidth}
+    \centering
+    \label{chomsky}
+    \includegraphics[width=0.8\textwidth]{cky_table.png}
+    \captionof{figure}{Tabela do CKY}
+\end{minipage}
+
+\
+
+Na minha implementação, utilizei uma matriz implementada como uma lista de listas. A posição $[a][b]$ da matriz indica a subcadeia de comprimento $a$ iniciando em $b$. Cada item da matriz é um conjunto (\emph{MapSet}) de não terminais que podem gerar a subcadeia.
+
+Foi criada uma função para inicializar a tabela CKY. Para isso, a função busca regras que gerem cada terminal da cadeia e os coloca no primeiro item da lista, seguido da tabela vazia. Foram feitos testes:
+
+\lstinputlisting{7.ex}
+
+\
+
+\lstinputlisting{7_test.ex}
+
+Foi feita a função de atualização da tabela:
+
+\lstinputlisting{8.ex}
+
+E a função \emph{cky} principal, com testes:
+
+\lstinputlisting{9.ex}
+
+\
+
+\lstinputlisting{9_test.ex}
 
 \section{Resultados}
 
-% A implementação foi um sucesso e passou nos testes realizados. Casos com transições vazias, incluindo ciclos, foram testados e aprovados, e o código funcionou em qualquer DFA ou NFA testado.
+A implementação foi um sucesso e passou nos testes realizados. Foram realizados testes com gramáticas longas e complexas, como análise da estrutura de frases simples, e o código funcionou como esperado.
 
 \section{Conclusão}
 
-% Pude aplicar os conhecimentos da disciplina em um problema prático e realizar reconhecimento de cadeias usando autômatos finitos, uma das opções para reconhecimento de linguagens regulares. Pude aplicar conhecimentos de gramáticas e hierarquia de Chomsky na resolução de um problema em Elixir. A implementação foi, inesperadamente, bastante menos trabalhosa que a do exercício programa passado (EP2).
+Pude aplicar os conhecimentos da disciplina em um problema prático e realizar a transformação de qualquer gramática livre de contexto em uma gramática equivalente, em forma normal de Chomsky. Além disso, implementei um algoritmo rápido de reconhecimento de cadeias usando gramáticas normalizadas em forma normal de Chomsky, utilizando programação dinâmica.
 
 \begin{thebibliography}{1}
 \bibitem{elixir}
