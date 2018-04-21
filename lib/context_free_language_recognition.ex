@@ -71,8 +71,7 @@ defmodule ContextFreeLanguageRecognition do
     if right == [] do
       {list, nil}
     else
-      [_ | right] = right
-      {left, right}
+      {left, tl(right)}
     end
   end
 
