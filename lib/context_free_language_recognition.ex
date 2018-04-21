@@ -149,7 +149,7 @@ defmodule ContextFreeLanguageRecognition do
     )
   end
 
-  def cky({rules, start}, sentence) do
+  def cky_table({rules, start}, sentence) do
     m = init_cky({rules, start}, sentence)
     n = length(sentence)
     nt_rules = Enum.filter(rules, &(length(elem(&1, 1)) == 2))
@@ -166,7 +166,11 @@ defmodule ContextFreeLanguageRecognition do
         end)
       end)
     end)
-    |> Enum.at(n - 1)
+  end
+
+  def cky({rules, start}, sentence) do
+    cky_table({rules, start}, sentence)
+    |> Enum.at(length(sentence) - 1)
     |> Enum.at(0)
     |> MapSet.member?(start)
   end
