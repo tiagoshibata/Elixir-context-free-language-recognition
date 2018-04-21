@@ -169,6 +169,20 @@ defmodule ContextFreeLanguageRecognitionTest do
       {"S", ["a"]},
       {"A", ["a"]},
     ]
+    assert eliminate_unit_rules(MapSet.new [
+      {"S", ["A", "a"]},
+      {"S", ["A"]},
+      {"A", ["a"]},
+      {"A", ["B"]},
+      {"B", ["b"]},
+    ]) == MapSet.new [
+      {"S", ["A", "a"]},
+      {"S", ["a"]},
+      {"S", ["b"]},
+      {"A", ["a"]},
+      {"A", ["b"]},
+      {"B", ["b"]},
+    ]
   end
 
   test "generates the Chomsky normal form" do
@@ -242,47 +256,47 @@ defmodule ContextFreeLanguageRecognitionTest do
     assert eliminate_empty_rules(new_rules) == new_rules
 
     new_rules = eliminate_unit_rules(new_rules)
-    assert new_rules == MapSet.new [
+    expected_rules = MapSet.new [
+      {"S0", ["FACTOR", "FACTOR_1"]},
+      {"S0", ["number"]},
+      {"S0", ["variable"]},
+      {"S0", ["N_(", "PRIMARY_1"]},
+      {"S0", ["TERM", "TERM_1"]},
       {"S0", ["EXPR", "EXPR_1"]},
       {"S0", ["ADD", "TERM"]},
-      {"S0", ["N_(", "PRIMARY_1"]},
-
-      {"EXPR", ["variable"]},
       {"EXPR", ["FACTOR", "FACTOR_1"]},
-      {"EXPR", ["N_(", "PRIMARY_1"]},
       {"EXPR", ["number"]},
-
+      {"EXPR", ["variable"]},
+      {"EXPR", ["N_(", "PRIMARY_1"]},
+      {"EXPR", ["TERM", "TERM_1"]},
       {"EXPR", ["EXPR", "EXPR_1"]},
       {"EXPR_1", ["ADD", "TERM"]},
       {"EXPR", ["ADD", "TERM"]},
-
-      {"PRIMARY_1", ["EXPR", "N_)"]},
-      {"ADD", ["+"]},
+      {"TERM", ["FACTOR", "FACTOR_1"]},
+      {"TERM", ["number"]},
+      {"TERM", ["variable"]},
+      {"TERM", ["N_(", "PRIMARY_1"]},
+      {"TERM", ["TERM", "TERM_1"]},
+      {"TERM_1", ["MUL", "FACTOR"]},
+      {"FACTOR", ["FACTOR", "FACTOR_1"]},
+      {"FACTOR_1", ["N_^", "PRIMARY"]},
+      {"FACTOR", ["number"]},
       {"FACTOR", ["variable"]},
       {"FACTOR", ["N_(", "PRIMARY_1"]},
       {"PRIMARY", ["number"]},
-      {"PRIMARY", ["N_(", "PRIMARY_1"]},
-      {"TERM", ["TERM", "TERM_1"]},
-      {"TERM", ["FACTOR", "FACTOR_1"]},
-      {"S0", ["number"]},
-      {"FACTOR", ["FACTOR", "FACTOR_1"]},
       {"PRIMARY", ["variable"]},
-      {"N_)", [")"]},
-      {"ADD", ["-"]},
+      {"PRIMARY", ["N_(", "PRIMARY_1"]},
+      {"PRIMARY_1", ["EXPR", "N_)"]},
       {"N_(", ["("]},
-      {"MUL", ["/"]},
-      {"S0", ["FACTOR", "FACTOR_1"]},
-      {"S0", ["TERM", "TERM_1"]},
-      {"FACTOR", ["number"]},
-      {"TERM", ["N_(", "PRIMARY_1"]},
-      {"TERM_1", ["MUL", "FACTOR"]},
-      {"TERM", ["variable"]},
-      {"FACTOR_1", ["N_^", "PRIMARY"]},
-      {"EXPR", ["TERM", "TERM_1"]},
-      {"S0", ["variable"]},
-      {"MUL", ["*"]},
+      {"N_)", [")"]},
       {"N_^", ["^"]},
-      {"TERM", ["number"]},
+      {"ADD", ["+"]},
+      {"ADD", ["-"]},
+      {"MUL", ["/"]},
+      {"MUL", ["*"]},
     ]
+    assert new_rules == expected_rules
+
+    assert to_chomsky_nf({math_rules, "EXPR"}) == {expected_rules, "S0"}
   end
 end
