@@ -87,8 +87,12 @@ defmodule ContextFreeLanguageRecognition do
     end |> MapSet.new
   end
 
-  def eliminate_empty_rules(rules) do
-    empty_rule = Enum.find(rules, &(elem(&1, 1) == []))
+  def eliminate_empty_rules(rules, start) do
+    eliminate_empty_rules({rules, start})
+  end
+
+  def eliminate_empty_rules({rules, start}) do
+    empty_rule = Enum.find(rules, &(elem(&1, 0) != start and elem(&1, 1) == []))
     if is_nil(empty_rule) do
       rules
     else
@@ -97,7 +101,7 @@ defmodule ContextFreeLanguageRecognition do
         Enum.map(rewrite_empty_symbol(rule_right, elem(empty_rule, 0)), &({rule_left, &1}))
       end)
       |> MapSet.new
-      |> eliminate_empty_rules
+      |> eliminate_empty_rules(start)
     end
   end
 
@@ -128,7 +132,7 @@ defmodule ContextFreeLanguageRecognition do
     {rules, start} = eliminate_right_start({rules, start})
     rules = eliminate_nonsolitary_terminal(rules)
     |> eliminate_right_side_with_multiple_nonterminals
-    |> eliminate_empty_rules
+    |> eliminate_empty_rules(start)
     |> eliminate_unit_rules
     {rules, start}
   end

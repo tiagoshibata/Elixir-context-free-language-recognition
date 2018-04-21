@@ -125,16 +125,16 @@ defmodule ContextFreeLanguageRecognitionTest do
   end
 
   test "eliminates empty rules" do
-    assert eliminate_empty_rules(MapSet.new [
+    assert eliminate_empty_rules(MapSet.new([
       {"S", ["A", "a"]},
       {"A", ["a"]},
       {"A", []},
-    ]) == MapSet.new [
+    ]), "S") == MapSet.new [
       {"S", ["A", "a"]},
       {"S", ["a"]},
       {"A", ["a"]},
     ]
-    assert eliminate_empty_rules(MapSet.new [
+    assert eliminate_empty_rules(MapSet.new([
       {"S", ["A", "b", "B"]},
       {"S", ["C"]},
       {"B", ["A", "A"]},
@@ -143,7 +143,7 @@ defmodule ContextFreeLanguageRecognitionTest do
       {"C", ["c"]},
       {"A", ["a"]},
       {"A", []},
-    ]) == MapSet.new [
+    ]), "S") == MapSet.new [
       {"S", ["A", "b", "B"]},
       {"S", ["A", "b"]},
       {"S", ["b", "B"]},
@@ -253,7 +253,7 @@ defmodule ContextFreeLanguageRecognitionTest do
       {"MUL", ["/"]},
     ]
 
-    assert eliminate_empty_rules(new_rules) == new_rules
+    assert eliminate_empty_rules({new_rules, new_start}) == new_rules
 
     new_rules = eliminate_unit_rules(new_rules)
     expected_rules = MapSet.new [
